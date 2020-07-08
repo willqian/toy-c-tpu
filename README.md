@@ -12,7 +12,7 @@ gcc -o main main.c
 使用tensorflow训练该网络，得到的weight和bias可以用来给TPU进行推理
 
 ```
-python nn.py
+python nn3.py
 ```
 
 参考输出weight和bias：
