@@ -8,6 +8,9 @@
 // accumulator address; 4 are length (sometimes 2 dimensions for convolutions); and the rest are opcode and flags
 // The 4MiB represents 4096, 256-element, 32-bit accumulators.
 // The matrix unit produces one 256-element partial sum per clock cycle.
+// We picked 4096 by first noting that the operations per byte need to reach peak performance (roofline knee in Section 4) is ~1350,
+// so we rounded that up to 2048 and then duplicated it so that the compiler could use double buffering
+// while running at peak performance
 static char *instructions[10] = {
     "Read_Host_Memory", // 3B-unified-buffer-addr 8B-host-addr 3B-size 14B
     "Read_Weights", // 2B-weights-addr 8B-addr 3B-size  13B
