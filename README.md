@@ -4,7 +4,7 @@
 
 该demo集成了TPU的最基本的指令功能，可以进行基本的矩阵运算和ReLU激活函数处理
 ```
-gcc -o main main.c
+gcc -o demo demo.c vm.c
 ```
 
 ## 训练3层神经网络
