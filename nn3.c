@@ -114,12 +114,12 @@ static int calculate(int8_t *x, int xlen, int8_t *y, int ylen)
     vm_read_weights((int8_t *)q_w1, 6);
     vm_read_weights((int8_t *)q_b1, 3);
     vm_maxtrix_multiply(0, 0, 1, 3, 3, 3);
-    vm_activate(ACT_TYPE_NONE, 0, 3);
+    vm_activate(ACT_TYPE_NONE, 0, 0, 3);
     vm_read_host_memory(3, (int8_t *)test_input_plus, 1);
     vm_read_weights((int8_t *)q_w2, 3);
     vm_read_weights((int8_t *)q_b2, 1);
     vm_maxtrix_multiply(0, 0, 1, 4, 4, 1);
-    vm_activate(ACT_TYPE_NONE, 0, 1);
+    vm_activate(ACT_TYPE_NONE, 0, 0, 1);
     vm_write_host_memory((int8_t *)y, 0, ylen);
     return 0;
 }

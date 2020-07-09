@@ -113,7 +113,7 @@ static int relu(uint16_t accumulator_addr, int len)
     return 0;
 }
 
-int vm_activate(act_type_enum_t type, uint16_t accumulator_addr, int len)
+int vm_activate(act_type_enum_t type, uint16_t accumulator_addr, uint32_t unified_buffer_addr, int len)
 {
     int ret;
     switch (type) {
@@ -126,7 +126,7 @@ int vm_activate(act_type_enum_t type, uint16_t accumulator_addr, int len)
         break;
     }
     for (int i = 0; i < len; i ++) {
-        local_unified_buffer[i] = accumulators[accumulator_addr + i];
+        local_unified_buffer[unified_buffer_addr + i] = accumulators[accumulator_addr + i];
         accumulators[accumulator_addr + i] = 0;
     }
 }
