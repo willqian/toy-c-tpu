@@ -61,7 +61,7 @@ static float get_abs_max(float *data, int len)
 static int quantize_data(float *data, int8_t *q_data, int len, float max)
 {
     for (int i = 0; i < len; i ++) {
-        q_data[i] = data[i] / max * 256;
+        q_data[i] = data[i] / max * 128;
     }
     return 0;
 }
@@ -77,7 +77,7 @@ static int quantize_wb()
     abs_max = abs_max < max_b1 ? max_b1 : abs_max;
     float max_b2 = get_abs_max((float *)b2, 1);
     abs_max = abs_max < max_b2 ? max_b2 : abs_max;
-    abs_max *= 64;
+    abs_max *= 32;
     //printf("abs_max %f\n", abs_max);
     quantize_data((float *)w1, (int8_t *)q_w1, 6, abs_max);
     quantize_data((float *)w2, (int8_t *)q_w2, 3, abs_max);
@@ -92,7 +92,7 @@ static int quantize_wb()
 
 static int quantize_x()
 {
-    int quant = 32;
+    int quant = 16;
     quantize_data((float *)test_x1, (int8_t *)test_q_x1, 2, quant);
     quantize_data((float *)test_x2, (int8_t *)test_q_x2, 2, quant);
     quantize_data((float *)test_x3, (int8_t *)test_q_x3, 2, quant);
