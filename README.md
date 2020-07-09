@@ -7,6 +7,30 @@
 gcc -o demo demo.c vm.c
 ```
 
+## 推理3层神经网络
+
+该demo基于tensorflow训练3层神经网络的结果，进行量化后，再使用TPU进行推理
+```
+gcc -o nn3 nn3.c vm.c
+```
+
+参考结果如下，符合训练3层神经网络时的结果，输入x的两个维度越大，输出结果越大，否则越小
+```
+x1 [5, 7]
+x2 [4, 6]
+x3 [7, 5]
+x4 [0, 3]
+x5 [3, 0]
+x6 [1, 1]
+test_q_y1 121
+test_q_y2 101
+test_q_y3 89
+test_q_y4 39
+test_q_y5 -9
+test_q_y6 5
+
+```
+
 ## 训练3层神经网络
 
 使用tensorflow训练该网络，得到的weight和bias可以用来给TPU进行推理

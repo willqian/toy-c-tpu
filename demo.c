@@ -34,7 +34,7 @@ int main(int argc ,char *argv[])
     ret = vm_read_host_memory(0, (int8_t *)input, 2);
     ret = vm_read_weights((int8_t *)weight, 4);
     ret = vm_maxtrix_multiply(0, 0, 1, 2, 2, 2);
-    ret = vm_activate(0, 2);
+    ret = vm_activate(ACT_TYPE_RELU, 0, 2);
     ret = vm_write_host_memory((int8_t *)output, 0, 2);
     printf("%d %d\n", output[0][0], output[0][1]);
 }

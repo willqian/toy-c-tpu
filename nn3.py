@@ -12,8 +12,8 @@ X = [[0.7, 0.9],
     [0.6, 0.8]]
 Y = [[1], [0], [1], [1], [0], [1]]
 
-date_size =len(X)
-batch_size =3
+date_size = len(X)
+batch_size = 3
 
 # 三层网络结构，分别为2X3，3X1
 random_normal = tf.random_normal_initializer(stddev=1)
