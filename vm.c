@@ -77,6 +77,10 @@ int vm_read_weights(uint8_t *host_addr, int len)
 int vm_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
         uint8_t input_row, uint8_t input_col, uint8_t weight_row, uint8_t weight_col)
 {
+    if (weight_fifo.size < weight_row * weight_col) {
+        DBG("vm32_maxtrix_multiply failed, weight fifo is too small\n");
+        return -1;
+    }
     INFO("maxtrix_multiply:\n");
     for (int lcol = 0; lcol < input_col; lcol++) {
         for (int lrow = 0; lrow < input_row; lrow++) {
@@ -126,6 +130,9 @@ int vm_activate(act_type_enum_t type, uint16_t accumulator_addr, uint32_t unifie
         break;
     }
     for (int i = 0; i < len; i ++) {
+        if (accumulators[accumulator_addr + i] >= 128 || accumulators[accumulator_addr + i] <= -128) {
+            DBG("accumulators->local_unified_buffer overflow detected\n");
+        }
         local_unified_buffer[unified_buffer_addr + i] = accumulators[accumulator_addr + i];
         accumulators[accumulator_addr + i] = 0;
     }
