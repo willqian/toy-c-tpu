@@ -6,6 +6,7 @@
 typedef enum {
     ACT_TYPE_NONE = 0,
     ACT_TYPE_RELU,
+    ACT_TYPE_MAX,
 } act_type_enum_t;
 
 int vm_init();

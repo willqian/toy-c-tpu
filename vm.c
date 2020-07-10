@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 #define DBG(fmt, args...) \
     do { \
@@ -19,6 +20,17 @@
     } while(0)
 #else
 #define INFO(fmt, args...) do {} while(0)
+#endif
+
+//#define VM_WARN
+#ifdef VM_WARN
+#define WARN(fmt, args...) \
+    do { \
+        printf("[file %s, line %d, func %s] "fmt, \
+                __FILE__, __LINE__, __func__, ##args); \
+    } while(0)
+#else
+#define WARN(fmt, args...) do {} while(0)
 #endif
 
 // TODO: Sparsity 矩阵运算
@@ -90,7 +102,12 @@ int vm_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
                 int fifo_index = raddr_offset + weight_fifo.read_index % WEIGHT_FIFO_MAX_SIZE;
                 int result = local_unified_buffer[laddr_offset] * weight_fifo.data[fifo_index];
                 if (result >= 128 || result <= -128) {
-                    DBG("overflow detected\n");
+                    WARN("overflow detected %d\n", result);
+                    if (result >= 128) {
+                        result = 127;
+                    } else if (result <= -128) {
+                        result = -127;
+                    }
                 }
                 maxtrix_multiply_unit[lrow][rcol] = result;
                 accumulators[accumulator_addr + lrow * weight_col + rcol] += maxtrix_multiply_unit[lrow][rcol];
@@ -117,6 +134,27 @@ static int relu(uint16_t accumulator_addr, int len)
     return 0;
 }
 
+static int linear_max(uint16_t accumulator_addr, int len)
+{
+    int max = accumulators[accumulator_addr];
+    int max_index = 0;
+    for (int i = 0; i < len; i++) {
+        //printf("%d ", accumulators[accumulator_addr + i]);
+        if (max < accumulators[accumulator_addr + i]) {
+            max = accumulators[accumulator_addr + i];
+            max_index = i;
+        }
+    }
+    for (int i = 0; i < len; i++) {
+        if (i == max_index) {
+            accumulators[accumulator_addr + i] = 1;
+        } else {
+            accumulators[accumulator_addr + i] = 0;
+        }
+    }
+    return 0;
+}
+
 int vm_activate(act_type_enum_t type, uint16_t accumulator_addr, uint32_t unified_buffer_addr, int len)
 {
     int ret;
@@ -126,12 +164,20 @@ int vm_activate(act_type_enum_t type, uint16_t accumulator_addr, uint32_t unifie
     case ACT_TYPE_RELU:
         ret = relu(accumulator_addr, len); 
         break;
+    case ACT_TYPE_MAX:
+        ret = linear_max(accumulator_addr, len); 
+        break;
     default:
         break;
     }
     for (int i = 0; i < len; i ++) {
         if (accumulators[accumulator_addr + i] >= 128 || accumulators[accumulator_addr + i] <= -128) {
-            DBG("accumulators->local_unified_buffer overflow detected\n");
+            WARN("accumulators->local_unified_buffer overflow detected %d\n", accumulators[accumulator_addr + i]);
+            if (accumulators[accumulator_addr + i] >= 128) {
+                accumulators[accumulator_addr + i] = 127;
+            } else if (accumulators[accumulator_addr + i] <= -128) {
+                accumulators[accumulator_addr + i] = -127;
+            }
         }
         local_unified_buffer[unified_buffer_addr + i] = accumulators[accumulator_addr + i];
         accumulators[accumulator_addr + i] = 0;
