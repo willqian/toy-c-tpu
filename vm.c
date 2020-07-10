@@ -85,7 +85,7 @@ int vm_read_weights(uint8_t *host_addr, int len)
     return 0;
 }
 
-// TODO: 当weight数据不够时，处理异常
+// TODO: 按照TPU论文，重新调整乘法的逻辑
 int vm_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
         uint16_t input_row, uint16_t input_col, uint16_t weight_row, uint16_t weight_col)
 {
