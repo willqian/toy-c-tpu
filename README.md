@@ -7,6 +7,13 @@
 gcc -o demo demo.c vm.c
 ```
 
+## TPU 32位 float 推理3层神经网络
+
+32位TPU虚拟机只是用来做对比验证，最终芯片实现的还是INT8
+```
+gcc -o nn3_32 nn3_32.c vm32.c
+```
+
 ## 推理3层神经网络
 
 该demo基于tensorflow训练3层神经网络的结果，进行量化后，再使用TPU进行推理
