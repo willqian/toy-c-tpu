@@ -7,6 +7,26 @@
 gcc -o demo demo.c vm.c
 ```
 
+## TPU 32位 float 推理mnist全连接神经网络
+
+基于tensorflow训练的结果进行推理
+```
+gcc -o mnist_nn_32 mnist_nn_32.c vm32.c mnist_nn_variables.c mnist_data.c
+```
+
+参考输出结果
+```
+predict 2, label 2
+predict 6, label 6
+predict 3, label 3
+predict 4, label 4
+predict 3, label 3
+```
+
+## 训练mnist全连接神经网络
+
+使用tensorflow训练该网络，参考`mnist_nn.py`
+
 ## TPU 32位 float 推理3层神经网络
 
 32位TPU虚拟机只是用来做对比验证，最终芯片实现的还是INT8

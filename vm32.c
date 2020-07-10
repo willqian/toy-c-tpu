@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 #define DBG(fmt, args...) \
     do { \
@@ -70,7 +71,7 @@ int vm32_read_weights(float *host_addr, int n)
 }
 
 int vm32_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
-        uint8_t input_row, uint8_t input_col, uint8_t weight_row, uint8_t weight_col)
+        uint16_t input_row, uint16_t input_col, uint16_t weight_row, uint16_t weight_col)
 {
     if (weight_fifo.size < weight_row * weight_col) {
         DBG("vm32_maxtrix_multiply failed, weight fifo is too small\n");
@@ -108,6 +109,18 @@ static int relu(uint16_t accumulator_addr, int len)
     return 0;
 }
 
+static int softmax(uint16_t accumulator_addr, int len)
+{
+    float sum = 0;
+    for (int i = 0; i < len; i++) {
+        sum += exp(accumulators[accumulator_addr + i]);
+    }
+    for (int i = 0; i < len; i++) {
+        accumulators[accumulator_addr + i] = exp(accumulators[accumulator_addr + i]) / sum;
+    }
+    return 0;
+}
+
 int vm32_activate(act32_type_enum_t type, uint16_t accumulator_addr, uint32_t unified_buffer_addr, int n)
 {
     int ret;
@@ -116,6 +129,9 @@ int vm32_activate(act32_type_enum_t type, uint16_t accumulator_addr, uint32_t un
         break;
     case ACT32_TYPE_RELU:
         ret = relu(accumulator_addr, n); 
+        break;
+    case ACT32_TYPE_SOFTMAX:
+        ret = softmax(accumulator_addr, n); 
         break;
     default:
         break;
