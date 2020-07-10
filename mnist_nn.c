@@ -105,7 +105,7 @@ static int quantize_wb()
     float max_w2 = get_abs_max((float *)dw2, 128 * 10);
     float aver_w2 = get_abs_average((float *)dw2, 128 * 10);
     printf("max w2 %f, average %f\n", max_w2, aver_w2);
-    quantize_data((float *)dw2, (int8_t *)q_dw2, 128 * 10, max_w2, 20);
+    quantize_data((float *)dw2, (int8_t *)q_dw2, 128 * 10, max_w2, 21);
     float max_b2 = get_abs_max((float *)db2, 10);
     float aver_b2 = get_abs_average((float *)db2, 10);
     printf("max b2 %f, average %f\n", max_b2, aver_b2);
@@ -118,7 +118,7 @@ static int quantize_x_data(float data[28][28], int8_t q_data[28][28])
     //printf("\n");
     for (int i = 0; i < 28; i++) {
         for (int j = 0; j < 28; j++) {
-            q_data[i][j] = data[i][j] * 5;
+            q_data[i][j] = data[i][j] * 10;
             //printf("%d ", q_data[i][j]);
         }
         //printf("\n");

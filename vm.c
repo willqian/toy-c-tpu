@@ -100,17 +100,7 @@ int vm_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
                 int laddr_offset = lrow * input_col + lcol + unified_buffer_addr;
                 int raddr_offset = lcol * weight_col + rcol;
                 int fifo_index = raddr_offset + weight_fifo.read_index % WEIGHT_FIFO_MAX_SIZE;
-                int result = local_unified_buffer[laddr_offset] * weight_fifo.data[fifo_index];
-                if (result >= 128 || result <= -128) {
-                    WARN("overflow detected %d\n", result);
-                    if (result >= 128) {
-                        result = 127;
-                    } else if (result <= -128) {
-                        result = -127;
-                    }
-                }
-                maxtrix_multiply_unit[lrow][rcol] = result;
-                accumulators[accumulator_addr + lrow * weight_col + rcol] += maxtrix_multiply_unit[lrow][rcol];
+                accumulators[accumulator_addr + lrow * weight_col + rcol] += local_unified_buffer[laddr_offset] * weight_fifo.data[fifo_index];
                 INFO("%d * %d = %d, sum[%d][%d] = %d\n", local_unified_buffer[laddr_offset], weight_fifo.data[fifo_index],
                         local_unified_buffer[laddr_offset] * weight_fifo.data[fifo_index], 
                         lrow, rcol, maxtrix_multiply_unit[lrow][rcol]);
@@ -139,7 +129,7 @@ static int linear_max(uint16_t accumulator_addr, int len)
     int max = accumulators[accumulator_addr];
     int max_index = 0;
     for (int i = 0; i < len; i++) {
-        //printf("%d ", accumulators[accumulator_addr + i]);
+        printf("%d ", accumulators[accumulator_addr + i]);
         if (max < accumulators[accumulator_addr + i]) {
             max = accumulators[accumulator_addr + i];
             max_index = i;
