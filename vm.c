@@ -90,7 +90,7 @@ int vm_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
         uint16_t input_row, uint16_t input_col, uint16_t weight_row, uint16_t weight_col)
 {
     if (weight_fifo.size < weight_row * weight_col) {
-        DBG("vm32_maxtrix_multiply failed, weight fifo is too small\n");
+        DBG("vm_maxtrix_multiply failed, weight fifo is too small\n");
         return -1;
     }
     INFO("maxtrix_multiply:\n");
