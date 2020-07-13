@@ -50,6 +50,9 @@ predict 3, label 3
 ## 训练mnist全连接神经网络
 
 使用tensorflow训练该网络，参考`mnist_nn.py`
+```
+python mnist_nn.py
+```
 
 ## TPU 32位 float 推理3层神经网络
 
