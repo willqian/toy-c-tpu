@@ -75,15 +75,6 @@ static float get_abs_max(float *data, int len)
     return max;
 }
 
-static float get_abs_average(float *data, int len)
-{
-    float total = 0;
-    for (int i = 0; i < len; i ++) {
-        total += fabs(data[i]);
-    }
-    return total / len;
-}
-
 static int quantize_data(float *data, int8_t *q_data, int len, float max, int region)
 {
     for (int i = 0; i < len; i ++) {
@@ -94,22 +85,21 @@ static int quantize_data(float *data, int8_t *q_data, int len, float max, int re
 
 static int quantize_wb()
 {
+    float abs_max = 0;
     float max_w1 = get_abs_max((float *)dw1, 784 * 128);
-    float aver_w1 = get_abs_average((float *)dw1, 784 * 128);
-    printf("max w1 %f, average %f\n", max_w1, aver_w1);
-    quantize_data((float *)dw1, (int8_t *)q_dw1, 784 * 128, max_w1, 8);
+    abs_max = abs_max < max_w1 ? max_w1 : abs_max;
     float max_b1 = get_abs_max((float *)db1, 128);
-    float aver_b1 = get_abs_average((float *)db1, 128);
-    printf("max b1 %f, average %f\n", max_b1, aver_b1);
-    quantize_data((float *)db1, (int8_t *)q_db1, 128, max_b1, 6);
+    abs_max = abs_max < max_b1 ? max_b1 : abs_max;
     float max_w2 = get_abs_max((float *)dw2, 128 * 10);
-    float aver_w2 = get_abs_average((float *)dw2, 128 * 10);
-    printf("max w2 %f, average %f\n", max_w2, aver_w2);
-    quantize_data((float *)dw2, (int8_t *)q_dw2, 128 * 10, max_w2, 21);
+    abs_max = abs_max < max_w2 ? max_w2 : abs_max;
     float max_b2 = get_abs_max((float *)db2, 10);
-    float aver_b2 = get_abs_average((float *)db2, 10);
-    printf("max b2 %f, average %f\n", max_b2, aver_b2);
-    quantize_data((float *)db2, (int8_t *)q_db2, 10, max_b2, 5);
+    abs_max = abs_max < max_b2 ? max_b2 : abs_max;
+
+    int region = 16;
+    quantize_data((float *)dw1, (int8_t *)q_dw1, 784 * 128, abs_max, region);
+    quantize_data((float *)db1, (int8_t *)q_db1, 128, abs_max, region);
+    quantize_data((float *)dw2, (int8_t *)q_dw2, 128 * 10, abs_max, region);
+    quantize_data((float *)db2, (int8_t *)q_db2, 10, abs_max, region);
     return 0;
 }
 

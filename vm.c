@@ -129,7 +129,7 @@ static int linear_max(uint16_t accumulator_addr, int len)
     int max = accumulators[accumulator_addr];
     int max_index = 0;
     for (int i = 0; i < len; i++) {
-        printf("%d ", accumulators[accumulator_addr + i]);
+        INFO("%d ", accumulators[accumulator_addr + i]);
         if (max < accumulators[accumulator_addr + i]) {
             max = accumulators[accumulator_addr + i];
             max_index = i;
