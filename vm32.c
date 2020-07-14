@@ -151,6 +151,8 @@ int vm32_convolve(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
             }
         }
     }
+    weight_fifo.read_index = (weight_fifo.read_index + kernel_row * kernel_col * channel * kernel_size) % WEIGHT_FIFO_MAX_SIZE;
+    weight_fifo.size -= kernel_row * kernel_col * channel * kernel_size;
 }
 
 static int relu(uint16_t accumulator_addr, int len)

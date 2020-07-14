@@ -13,10 +13,17 @@ kernel_in = np.array([
     [ [[1]], [[1]], [[1]] ],
     [ [[1]], [[1]], [[0]] ], ])
 
+kernel2_in = np.array([
+    [ [[0, 1]], [[1, 0]], [[1, 0]] ],
+    [ [[1, 0]], [[1, 1]], [[1, 0]] ],
+    [ [[1, 0]], [[1, 0]], [[0, 1]] ], ])
+
 x = tf.constant(x_in, dtype=tf.float32)
 kernel = tf.constant(kernel_in, dtype=tf.float32)
+kernel2 = tf.constant(kernel2_in, dtype=tf.float32)
 # print(x)
 # print(kernel)
+# print(kernel2)
 
 y = tf.nn.conv2d(x, kernel, strides=[1, 1, 1, 1], padding='VALID')
 print(y)
@@ -28,4 +35,7 @@ y = tf.nn.conv2d(x, kernel, strides=[1, 2, 2, 1], padding='VALID')
 print(y)
 
 y = tf.nn.conv2d(x, kernel, strides=[1, 2, 2, 1], padding='SAME')
+print(y)
+
+y = tf.nn.conv2d(x, kernel2, strides=[1, 2, 2, 1], padding='SAME')
 print(y)

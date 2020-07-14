@@ -18,10 +18,20 @@ int main(int argc ,char *argv[])
         {1, 1, 1},
         {1, 1, 0},
     };
+    float weight2[2][3][3] = {{
+        {0, 1, 1},
+        {1, 1, 1},
+        {1, 1, 0},
+    }, {
+        {1, 0, 0},
+        {0, 1, 0},
+        {0, 0, 1},
+    }};
     float output[3][3] = {0};
     float output_with_padding1[5][5] = {0};
     float output_with_stride2[2][2] = {0};
     float output_with_padding1_stride2[3][3] = {0};
+    float output_with_padding1_stride2_k2[2][3][3] = {0};
     printf("CNN input:\n");
     for (int i = 0; i < 5; i++) {
         for (int j = 0; j < 5; j ++) {
@@ -91,6 +101,23 @@ int main(int argc ,char *argv[])
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j ++) {
             printf("%f ", output_with_padding1_stride2[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    vm32_read_host_memory(0, (float *)input, 25);
+    vm32_read_weights((float *)weight2, 18);
+    vm32_convolve(0, 0, 5, 5, 1, 2, 3, 3, 2, 1);
+    vm32_activate(ACT32_TYPE_NONE, 0, 0, 18);
+    vm32_write_host_memory((float *)output_with_padding1_stride2_k2, 0, 18);
+    printf("CNN with padding 1 and stride 2 and kernel 2:\n");
+    for (int k = 0; k < 2; k++) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j ++) {
+                printf("%f ", output_with_padding1_stride2_k2[k][i][j]);
+            }
+            printf("\n");
         }
         printf("\n");
     }
