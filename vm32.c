@@ -83,7 +83,7 @@ int vm32_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_add
             for (int rcol = 0; rcol < weight_col; rcol++) {
                 int laddr_offset = lrow * input_col + lcol + unified_buffer_addr;
                 int raddr_offset = lcol * weight_col + rcol;
-                int fifo_index = raddr_offset + weight_fifo.read_index % WEIGHT_FIFO_MAX_SIZE;
+                int fifo_index = (raddr_offset + weight_fifo.read_index) % WEIGHT_FIFO_MAX_SIZE;
                 maxtrix_multiply_unit[lrow][rcol] = local_unified_buffer[laddr_offset] * weight_fifo.data[fifo_index];
                 accumulators[accumulator_addr + lrow * weight_col + rcol] += maxtrix_multiply_unit[lrow][rcol];
                 INFO("%f * %f = %f, sum[%d][%d] = %f\n", local_unified_buffer[laddr_offset], weight_fifo.data[fifo_index],
@@ -97,6 +97,60 @@ int vm32_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_add
     weight_fifo.read_index = (weight_fifo.read_index + weight_row * weight_col) % WEIGHT_FIFO_MAX_SIZE;
     weight_fifo.size -= weight_row * weight_col;
     return 0;
+}
+
+int vm32_convolve(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
+        uint16_t input_row, uint16_t input_col, int channel, int kernel_size, uint16_t kernel_row, uint16_t kernel_col,
+        int stride, int padding)
+{
+    if (weight_fifo.size < kernel_row * kernel_col * channel * kernel_size) {
+        DBG("vm32_convolve failed, weight fifo is too small\n");
+        return -1;
+    }
+    int output_row = (input_row - kernel_row + padding * 2) / stride + 1;
+    int output_col = (input_col - kernel_col + padding * 2) / stride + 1;
+    int k_row_center = kernel_row / 2;
+    int k_col_center = kernel_col / 2;
+    INFO("output row %d, output col %d, total %d, k_row_center %d, k_col_center %d\n",
+            output_row, output_col, output_row * output_col, k_row_center, k_col_center);
+    for (int ki = 0; ki < kernel_size; ki++) {
+        for (int ci = 0; ci < channel; ci++) {
+            for (int kr = 0; kr < kernel_row; kr++) {
+                for (int kc = 0; kc < kernel_col; kc++) {
+                    for (int ir = 0; ir < input_row + padding * 2; ir++) {
+                        for (int ic = 0; ic < input_col + padding * 2; ic++) {
+                            if ((ir - padding) < 0 || (ir - padding) >= input_row
+                                    || (ic - padding) < 0 || (ic - padding) >= input_col) {
+                                INFO("input[%d][%d], k[%d][%d], padding %d, no need calculate\n", ir, ic, kr, kc, padding);
+                                continue;
+                            } 
+                            if ((ir - kr) < 0 || (ir - kr) >= (input_row - k_row_center - 1 + 2 * padding)
+                                    || (ic- kc) < 0 || (ic- kc) >= (input_col - k_col_center - 1 + 2 * padding)) {
+                                INFO("input[%d][%d], k[%d][%d], padding %d, invalid\n", ir, ic, kr, kc, padding);
+                                continue;
+                            }
+                            if ((ir - kr) % stride != 0 || (ic - kc) % stride != 0) {
+                                INFO("input[%d][%d], k[%d][%d], padding %d, stride %d, invalid\n", ir, ic, kr, kc, padding, stride);
+                                continue;
+                            }
+                            int ub_offset = ci * input_row * input_col + (ir - padding) * input_col + (ic - padding);
+                            int k_offset = ki * channel * kernel_row * kernel_col + ci * kernel_row * kernel_col
+                                    + kr * kernel_col + kc;
+                            int fifo_index = (k_offset + weight_fifo.read_index) % WEIGHT_FIFO_MAX_SIZE;
+                            int or = (ir - kr) / stride;
+                            int oc = (ic - kc) / stride;
+                            int a_offset = ki * output_row * output_col + or * output_col + oc;
+                            INFO("ub_offset %d, fifo_index %d, or %d, oc %d, a_offset %d\n", ub_offset, fifo_index, or, oc, a_offset);
+                            float input = local_unified_buffer[unified_buffer_addr + ub_offset];
+                            float k = weight_fifo.data[fifo_index];
+                            accumulators[a_offset] += input * k;
+                            INFO("input[%d,%d]:%f, k[%d][%d]:%f, a[%d]:%f\n", ir, ic, input, kr, kc, k, a_offset, accumulators[a_offset]);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 static int relu(uint16_t accumulator_addr, int len)

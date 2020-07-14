@@ -86,6 +86,8 @@ int vm_read_weights(uint8_t *host_addr, int len)
 }
 
 // TODO: 按照TPU论文，重新调整乘法的逻辑
+// A matrix operation takes a variable-sized B*256 input, multiplies it by a
+// 256x256 constant weight input, and produces a B*256 output, taking B pipelined cycles to complete
 int vm_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
         uint16_t input_row, uint16_t input_col, uint16_t weight_row, uint16_t weight_col)
 {
@@ -99,7 +101,7 @@ int vm_maxtrix_multiply(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
             for (int rcol = 0; rcol < weight_col; rcol++) {
                 int laddr_offset = lrow * input_col + lcol + unified_buffer_addr;
                 int raddr_offset = lcol * weight_col + rcol;
-                int fifo_index = raddr_offset + weight_fifo.read_index % WEIGHT_FIFO_MAX_SIZE;
+                int fifo_index = (raddr_offset + weight_fifo.read_index) % WEIGHT_FIFO_MAX_SIZE;
                 accumulators[accumulator_addr + lrow * weight_col + rcol] += local_unified_buffer[laddr_offset] * weight_fifo.data[fifo_index];
                 INFO("%d * %d = %d, sum[%d][%d] = %d\n", local_unified_buffer[laddr_offset], weight_fifo.data[fifo_index],
                         local_unified_buffer[laddr_offset] * weight_fifo.data[fifo_index], 
