@@ -34,8 +34,6 @@
 #endif
 
 // TODO: Sparsity 矩阵运算
-// TODO: maxtrix_multiply_unit会不会溢出
-// TODO: 数据矩阵小是否分别放到不同的累加器进行累加
 
 #define WEIGHT_FIFO_MAX_SIZE (256 * 256)
 
