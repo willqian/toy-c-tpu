@@ -143,7 +143,7 @@ int vm32_convolve(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
                             INFO("ub_offset %d, fifo_index %d, or %d, oc %d, a_offset %d\n", ub_offset, fifo_index, or, oc, a_offset);
                             float input = local_unified_buffer[unified_buffer_addr + ub_offset];
                             float k = weight_fifo.data[fifo_index];
-                            accumulators[a_offset] += input * k;
+                            accumulators[accumulator_addr + a_offset] += input * k;
                             INFO("input[%d,%d]:%f, k[%d][%d]:%f, a[%d]:%f\n", ir, ic, input, kr, kc, k, a_offset, accumulators[a_offset]);
                         }
                     }
