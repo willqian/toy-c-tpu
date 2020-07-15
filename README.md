@@ -14,9 +14,9 @@ TPU矩阵运算的优化，核心在于，乘法器矩阵中左(input)上(weight
 gcc -o demo demo.c vm.c
 ```
 
-## TPU 32位 float CNN demo
+## TPU CNN
 
-TPU 32位已支持卷积操作，包括channel，padding，stride的处理
+已支持卷积操作，包括channel，padding，stride，kernel size的处理
 
 TPU卷积运算的优化，核心在于，针对卷积核中的每一个元素都先对整个输入矩阵进行一次卷积遍历，然后把每个卷积核元素的结果累加起来
 1. 可以降低TPU load input数据的次数
@@ -24,11 +24,19 @@ TPU卷积运算的优化，核心在于，针对卷积核中的每一个元素�
 
 当然，TPU论文中并没有描述具体的卷积运算实现方式，但根据算法分析以及2015年的一篇论文：Optimizing FPGA-based accelerator design for deep convolutional neural networks，可以基本确认这种实现方式是高性能的
 
+### TPU INT8 CNN demo
+
+```
+gcc -o demo_cnn demo_cnn.c vm.c
+```
+
+### TPU 32位 float CNN demo
+
 ```
 gcc -o demo_cnn_32 demo_cnn_32.c vm32.c
 ```
 
-参考输出
+### 参考输出
 ```
 CNN input:
 1.000000 2.000000 3.000000 4.000000 5.000000
@@ -88,7 +96,7 @@ CNN with input 7x7 kernel 5x5, padding 2, and stride 2:
 22.000000 44.000000 42.000000 31.000000
 ```
 
-使用tensorflow卷积用来做验证
+### 使用tensorflow卷积用来做验证
 ```
 python demo_cnn.py
 ```
