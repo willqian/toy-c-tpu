@@ -85,22 +85,6 @@ int main(int argc ,char *argv[])
     float output_with_padding1_stride2_k2[2][3][3] = {0};
     float output_with_padding1_stride2_k2_channel2[2][3][3] = {0};
     float output_with_padding2_stride2_w5[4][4] = {0};
-    printf("CNN input:\n");
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j ++) {
-            printf("%f ", input[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-    printf("CNN kernel:\n");
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j ++) {
-            printf("%f ", weight[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
 
     vm32_init();
     vm32_read_host_memory(0, (float *)input, 25);
