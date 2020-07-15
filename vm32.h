@@ -1,5 +1,5 @@
-#ifndef VM_H
-#define VM_H
+#ifndef VM32_H
+#define VM32_H
 
 #include <stdint.h>
 
@@ -26,4 +26,4 @@ int vm32_activate(act32_type_enum_t type, uint16_t accumulator_addr, uint32_t un
 
 int vm32_write_host_memory(float *host_addr, uint32_t unified_buffer_addr, int n);
 
-#endif /* VM_H */
+#endif /* VM32_H */

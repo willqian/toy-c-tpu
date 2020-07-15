@@ -34,6 +34,11 @@
 #endif
 
 // TODO: Sparsity 矩阵运算
+// TODO: 根据总线位数和带宽，做32/64bit取input值
+// TODO: 实现TPU硬件并行运算虚拟机
+// TODO: 实现RNN网络
+// TODO: 实现反向传播训练
+// TODO: 大矩阵CNN卷积的拆分计算demo
 
 #define WEIGHT_FIFO_MAX_SIZE (256 * 256)
 
@@ -83,6 +88,7 @@ int vm_read_weights(uint8_t *host_addr, int len)
     return 0;
 }
 
+// TODO: 实现TPU斜向load input和weight，提高并行计算速度到256
 // TODO: 按照TPU论文，重新调整乘法的逻辑
 // A matrix operation takes a variable-sized B*256 input, multiplies it by a
 // 256x256 constant weight input, and produces a B*256 output, taking B pipelined cycles to complete
