@@ -14,6 +14,51 @@ TPU矩阵运算的优化，核心在于，乘法器矩阵中左(input)上(weight
 gcc -o demo demo.c vm.c
 ```
 
+## TPU 32位 float cifar CNN 图像识别
+
+已支持max pooling
+```
+gcc -o cifar10 cifar10_cnn_32.c vm32.c cifar10_cnn_variables.c cifar10_cnn_data.c
+```
+
+推理结果
+```
+predict: 9, truck, test_y: 9, truck
+detail:
+1.353900 -0.863579 2.427378 -4.060456 -3.588637 -1.933179 -10.055259 2.915245 -4.191559 4.489056
+
+predict: 8, ship, test_y: 8, ship
+detail:
+2.967486 -1.649458 0.286217 -0.655495 0.704763 -2.225053 -1.592144 -2.496777 5.010174 -3.057529
+
+predict: 6, frog, test_y: 6, frog
+detail:
+-10.382006 -7.122347 -0.053340 1.615066 -1.460678 1.234555 6.963420 -6.225483 -5.144471 -10.842333
+
+predict: 6, frog, test_y: 2, bird
+detail:
+-1.958389 -3.877736 0.378107 -0.071973 -0.029878 -1.665769 0.732384 -1.969363 -5.271281 -2.894828
+
+predict: 5, dog, test_y: 5, dog
+detail:
+-6.067231 -9.018535 -0.971456 1.954368 -0.616314 4.614746 -0.701623 -0.363836 -8.493745 -5.801422
+```
+
+tensorflow训练
+```
+python cifar10_cnn.py
+```
+
+训练模型
+```
+cifar10_cnn_keras_saved_graph
+```
+
+tensorflow帮助验证TPU正确性
+```
+python cifar10_cnn_validate.py
+```
+
 ## TPU CNN
 
 已支持卷积操作，包括channel，padding，stride，kernel size的处理

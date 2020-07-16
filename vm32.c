@@ -144,7 +144,7 @@ int vm32_convolve(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
                             float input = local_unified_buffer[unified_buffer_addr + ub_offset];
                             float k = weight_fifo.data[fifo_index];
                             accumulators[accumulator_addr + a_offset] += input * k;
-                            INFO("input[%d,%d]:%f, k[%d][%d]:%f, a[%d]:%f\n", ir, ic, input, kr, kc, k, a_offset, accumulators[a_offset]);
+                            INFO("input[%d,%d,%d]:%f, k[%d,%d,%d,%d]:%f, a[%d]:%f\n", ci, ir, ic, input, ki, ci, kr, kc, k, a_offset, accumulators[accumulator_addr + a_offset]);
                         }
                     }
                 }
@@ -153,6 +153,52 @@ int vm32_convolve(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
     }
     weight_fifo.read_index = (weight_fifo.read_index + kernel_row * kernel_col * channel * kernel_size) % WEIGHT_FIFO_MAX_SIZE;
     weight_fifo.size -= kernel_row * kernel_col * channel * kernel_size;
+    return 0;
+}
+
+int vm32_conv_bias(uint16_t accumulator_addr, uint16_t out_row, uint16_t out_col, int out_channel)
+{
+    if (weight_fifo.size < out_channel) {
+        DBG("vm32_conv_bias failed, weight fifo is too small\n");
+        return -1;
+    }
+    for (int ci = 0; ci < out_channel; ci++) {
+        for (int i = 0; i < out_row * out_col; i++) {
+            int a_offset = ci * out_row * out_col + i;
+            int w_offset = ci;
+            int fifo_index = (w_offset + weight_fifo.read_index) % WEIGHT_FIFO_MAX_SIZE;
+            accumulators[accumulator_addr + a_offset] += weight_fifo.data[fifo_index];
+        }
+    }
+    weight_fifo.read_index = (weight_fifo.read_index + out_channel) % WEIGHT_FIFO_MAX_SIZE;
+    weight_fifo.size -= out_channel;
+    return 0;
+}
+
+int vm32_max_pooling(uint32_t unified_buffer_addr, uint16_t accumulator_addr, uint16_t row, uint16_t col, int channel, int pool_size)
+{
+    int a_row = row / pool_size;
+    int a_col = col / pool_size;
+    for (int ci = 0; ci < channel; ci++) {
+        for (int ir = 0; ir < (row - pool_size + 1); ir += pool_size) {
+            for (int ic = 0; ic < (col - pool_size + 1); ic += pool_size) {
+                int air = ir / pool_size;
+                int aic = ic / pool_size;
+                int a_offset = ci * a_row * a_col + air * a_col + aic;
+                float max = -10000;
+                for (int i = 0; i < pool_size; i++) {
+                    for (int j = 0; j < pool_size; j++) {
+                        int ub_offset = ci * row * col + (ir + i) * col + (ic + j);
+                        max = max < local_unified_buffer[unified_buffer_addr + ub_offset] 
+                                ? local_unified_buffer[unified_buffer_addr + ub_offset] : max;
+                        INFO("[%d,%d,%d]:%f ", ci, ir + i, ic + j, local_unified_buffer[unified_buffer_addr + ub_offset]);
+                    }
+                }
+                accumulators[accumulator_addr + a_offset] = max;
+                INFO("[%d] max %f\n", a_offset, accumulators[accumulator_addr + a_offset]);
+            }
+        }
+    }
 }
 
 static int relu(uint16_t accumulator_addr, int len)
