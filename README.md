@@ -14,7 +14,57 @@ TPU矩阵运算的优化，核心在于，乘法器矩阵中左(input)上(weight
 gcc -o demo demo.c vm.c
 ```
 
-## TPU 32位 float cifar CNN 图像识别
+## TPU INT8 cifar10 CNN 图像识别
+
+关键在于数据的量化与反量化，`bias`与输入`x`需要确定系数关系，在每一层传播时要更新和同步这个系数，这才可以保证量化的正确性
+```
+gcc -o cifar10 cifar10_cnn.c vm.c cifar10_cnn_variables.c cifar10_cnn_data.c
+```
+
+推理结果
+```
+predict: 9, truck, test_y: 9, truck
+detail:
+12 22 11 -65 -74 -19 -127 27 -60 72
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+
+predict: 8, ship, test_y: 8, ship
+detail:
+70 32 -127 -45 -15 -37 -68 -87 114 -78
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+
+predict: 6, frog, test_y: 6, frog
+detail:
+-127 -61 -6 -6 -52 44 82 -76 -107 -110
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+
+predict: 6, frog, test_y: 2, bird
+detail:
+-30 -21 -3 -18 -127 -55 0 -102 -123 -1
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+norm max -15440
+
+predict: 5, dog, test_y: 5, dog
+detail:
+-36 -93 -36 24 -54 69 -33 0 -127 -22
+```
+
+## TPU 32位 float cifar10 CNN 图像识别
 
 已支持max pooling
 ```

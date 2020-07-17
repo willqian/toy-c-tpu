@@ -22,7 +22,7 @@
 #define INFO(fmt, args...) do {} while(0)
 #endif
 
-//#define VM_WARN
+#define VM_WARN
 #ifdef VM_WARN
 #define WARN(fmt, args...) \
     do { \
@@ -166,7 +166,7 @@ int vm_convolve(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
                             int8_t input = local_unified_buffer[unified_buffer_addr + ub_offset];
                             int8_t k = weight_fifo.data[fifo_index];
                             accumulators[accumulator_addr + a_offset] += input * k;
-                            INFO("input[%d,%d]:%d, k[%d][%d]:%d, a[%d]:%d\n", ir, ic, input, kr, kc, k, a_offset, accumulators[a_offset]);
+                            INFO("input[%d,%d]:%d, k[%d][%d]:%d, a[%d]:%d\n", ir, ic, input, kr, kc, k, a_offset, accumulators[accumulator_addr + a_offset]);
                         }
                     }
                 }
@@ -205,6 +205,114 @@ static int linear_max(uint16_t accumulator_addr, int len)
             accumulators[accumulator_addr + i] = 0;
         }
     }
+    return 0;
+}
+
+int vm_conv_bias(uint16_t accumulator_addr, uint16_t out_row, uint16_t out_col, int out_channel, int norm_range)
+{
+    if (weight_fifo.size < out_channel) {
+        DBG("vm_conv_bias failed, weight fifo is too small\n");
+        return -1;
+    }
+    for (int ci = 0; ci < out_channel; ci++) {
+        for (int i = 0; i < out_row * out_col; i++) {
+            int a_offset = ci * out_row * out_col + i;
+            int w_offset = ci;
+            int fifo_index = (w_offset + weight_fifo.read_index) % WEIGHT_FIFO_MAX_SIZE;
+            accumulators[accumulator_addr + a_offset] += weight_fifo.data[fifo_index] * norm_range;
+        }
+    }
+    weight_fifo.read_index = (weight_fifo.read_index + out_channel) % WEIGHT_FIFO_MAX_SIZE;
+    weight_fifo.size -= out_channel;
+    return 0;
+}
+
+int vm_matmul_bias(uint16_t accumulator_addr, uint16_t out_col, int norm_range)
+{
+    if (weight_fifo.size < out_col) {
+        DBG("vm_matmul_bias failed, weight fifo is too small\n");
+        return -1;
+    }
+    for (int i = 0; i < out_col; i++) {
+        int fifo_index = (i + weight_fifo.read_index) % WEIGHT_FIFO_MAX_SIZE;
+        accumulators[accumulator_addr + i] += weight_fifo.data[fifo_index] * norm_range;
+    }
+    weight_fifo.read_index = (weight_fifo.read_index + out_col) % WEIGHT_FIFO_MAX_SIZE;
+    weight_fifo.size -= out_col;
+    return 0;
+}
+
+int vm_max_pooling(uint32_t unified_buffer_addr, uint16_t accumulator_addr, uint16_t row, uint16_t col, int channel, int pool_size)
+{
+    int a_row = row / pool_size;
+    int a_col = col / pool_size;
+    for (int ci = 0; ci < channel; ci++) {
+        for (int ir = 0; ir < (row - pool_size + 1); ir += pool_size) {
+            for (int ic = 0; ic < (col - pool_size + 1); ic += pool_size) {
+                int air = ir / pool_size;
+                int aic = ic / pool_size;
+                int a_offset = ci * a_row * a_col + air * a_col + aic;
+                int8_t max = -127;
+                for (int i = 0; i < pool_size; i++) {
+                    for (int j = 0; j < pool_size; j++) {
+                        int ub_offset = ci * row * col + (ir + i) * col + (ic + j);
+                        max = max < local_unified_buffer[unified_buffer_addr + ub_offset] 
+                                ? local_unified_buffer[unified_buffer_addr + ub_offset] : max;
+                        INFO("[%d,%d,%d]:%d ", ci, ir + i, ic + j, local_unified_buffer[unified_buffer_addr + ub_offset]);
+                    }
+                }
+                accumulators[accumulator_addr + a_offset] = max;
+                INFO("[%d] max %d\n", a_offset, accumulators[accumulator_addr + a_offset]);
+            }
+        }
+    }
+}
+
+static int get_abs_max(int32_t *data, int len)
+{
+    int max = 0;
+    for (int i = 0; i < len; i ++) {
+        if (abs(data[i]) > max) {
+            max = abs(data[i]);
+        }
+    }
+    return max;
+}
+
+static void debug(int32_t *in, int channel, int row, int col)
+{
+    for (int ir = 0; ir < row; ir++) {
+        for (int ic = 0; ic < col; ic++) {
+            for (int ci = 0; ci < channel; ci++) {
+                //int tf_offset = ir * col * channel + ic * channel + ci;
+                int in_offset = ci * row * col + ir * col + ic;
+                printf("%d ", in[in_offset]);   
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+}
+
+void vm_debug_acc(uint16_t accumulator_addr, int channel, int row, int col)
+{
+    debug(accumulators + accumulator_addr, 32, 30, 30);
+}
+
+static int normalize(int32_t *data, int len, int max, int range)
+{
+    for (int i = 0; i < len; i ++) {
+        data[i] = data[i] * 1.0f / max * range;
+    }
+    return 0;
+}
+
+int vm_normalize(uint16_t accumulator_addr, int len, int range, int *max)
+{
+    int abs_max = get_abs_max(accumulators + accumulator_addr, len);
+    INFO("norm max %d\n", max);
+    normalize(accumulators + accumulator_addr, len, abs_max, range);
+    *max = abs_max;
     return 0;
 }
 

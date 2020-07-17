@@ -67,7 +67,7 @@ static void convert_flatten(float *in, float *out, int channel, int row, int col
 
 static int result(float *y)
 {
-    float max = 0;
+    float max = -100000;
     int max_index = 0;
     for (int i = 0; i < 10; i++) {
         if (max < y[i]) {
