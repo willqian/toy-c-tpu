@@ -175,6 +175,21 @@ int vm32_conv_bias(uint16_t accumulator_addr, uint16_t out_row, uint16_t out_col
     return 0;
 }
 
+int vm32_matmul_bias(uint16_t accumulator_addr, uint16_t out_col)
+{
+    if (weight_fifo.size < out_col) {
+        DBG("vm32_matmul_bias failed, weight fifo is too small\n");
+        return -1;
+    }
+    for (int i = 0; i < out_col; i++) {
+        int fifo_index = (i + weight_fifo.read_index) % WEIGHT_FIFO_MAX_SIZE;
+        accumulators[accumulator_addr + i] += weight_fifo.data[fifo_index];
+    }
+    weight_fifo.read_index = (weight_fifo.read_index + out_col) % WEIGHT_FIFO_MAX_SIZE;
+    weight_fifo.size -= out_col;
+    return 0;
+}
+
 int vm32_max_pooling(uint32_t unified_buffer_addr, uint16_t accumulator_addr, uint16_t row, uint16_t col, int channel, int pool_size)
 {
     int a_row = row / pool_size;

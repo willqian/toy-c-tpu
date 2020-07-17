@@ -18,8 +18,6 @@ static float c_conv2_k[64][64][3][3];
 
 static float debug_data[32][30][30];
 
-static float d_x_to_bias[1] = {1};
-
 static void convert_x(float *in, float *out, int channel, int row, int col)
 {
     for (int ci = 0; ci < channel; ci++) {
@@ -173,30 +171,20 @@ static int calculate(float *x, int y)
     // vm32_read_host_memory(0, debug_data, 1024);
 
     // d0
-    //  1024X64 left part
-    vm32_read_host_memory(1024, d_x_to_bias, 1);
-    for (int i = 0; i < 1024; i++) {
-        vm32_read_weights((float *)d0_k + i * 64, 32);
-    }
-    vm32_read_weights(d0_b, 32);
-    vm32_maxtrix_multiply(0, 0, 1, 1024 + 1, 1024 + 1, 32);
-
-    // 1024X64 right part
-    for (int i = 0; i < 1024; i++) {
-        vm32_read_weights((float *)d0_k + 32 + i * 64, 32);
-    }
-    vm32_read_weights(d0_b + 32, 32);
-    vm32_maxtrix_multiply(0, 32, 1, 1024 + 1, 1024 + 1, 32);
+    vm32_read_weights((float *)d0_k, 1024 * 64);
+    vm32_maxtrix_multiply(0, 0, 1, 1024, 1024, 64);
+    vm32_read_weights(d0_b, 64);
+    vm32_matmul_bias(0, 64);
     vm32_activate(ACT32_TYPE_RELU, 0, 0, 64);
     // vm32_write_host_memory(debug_data, 0, 64);
     // debug(debug_data, 1, 1, 64);
     // vm32_read_host_memory(0, debug_data, 64);
 
     // d1
-    vm32_read_host_memory(64, d_x_to_bias, 1);
     vm32_read_weights((float *)d1_k, 64 * 10);
+    vm32_maxtrix_multiply(0, 0, 1, 64, 64, 10);
     vm32_read_weights(d1_b, 10);
-    vm32_maxtrix_multiply(0, 0, 1, 64 + 1, 64 + 1, 10);
+    vm32_matmul_bias(0, 10);
     vm32_activate(ACT32_TYPE_NONE, 0, 0, 10);
     vm32_write_host_memory(output, 0, 10);
 

@@ -24,6 +24,8 @@ int vm32_convolve(uint32_t unified_buffer_addr, uint16_t accumulator_addr,
 
 int vm32_conv_bias(uint16_t accumulator_addr, uint16_t out_row, uint16_t out_col, int out_channel);
 
+int vm32_matmul_bias(uint16_t accumulator_addr, uint16_t out_col);
+
 int vm32_max_pooling(uint32_t unified_buffer_addr, uint16_t accumulator_addr, uint16_t row, uint16_t col, int channel, int pool_size);
 
 int vm32_activate(act32_type_enum_t type, uint16_t accumulator_addr, uint32_t unified_buffer_addr, int n);
