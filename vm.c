@@ -37,8 +37,9 @@
 // TODO: 根据总线位数和带宽，做32/64bit取input值
 // TODO: 实现TPU硬件并行运算虚拟机
 // TODO: 实现RNN网络
+// TODO: 实现LSTM
+// TODO: 实现DQN
 // TODO: 实现反向传播训练
-// TODO: 大矩阵CNN卷积的拆分计算demo
 
 // TODO: weight fifo不只有256*256
 #define WEIGHT_FIFO_MAX_SIZE (256 * 256)
