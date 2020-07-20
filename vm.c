@@ -310,7 +310,7 @@ static int normalize(int32_t *data, int len, int max, int range)
 int vm_normalize(uint16_t accumulator_addr, int len, int range, int *max)
 {
     int abs_max = get_abs_max(accumulators + accumulator_addr, len);
-    INFO("norm max %d\n", max);
+    INFO("norm max %d\n", abs_max);
     normalize(accumulators + accumulator_addr, len, abs_max, range);
     *max = abs_max;
     return 0;

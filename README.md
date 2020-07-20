@@ -25,24 +25,23 @@ gcc -o cifar10 cifar10_cnn.c vm.c cifar10_cnn_variables.c cifar10_cnn_data.c
 ```
 predict: 9, truck, test_y: 9, truck
 detail:
-12 22 11 -65 -74 -19 -127 27 -60 72
+2 -47 38 -20 -16 -27 -127 16 -27 45
 
 predict: 8, ship, test_y: 8, ship
 detail:
-70 32 -127 -45 -15 -37 -68 -87 114 -78
+44 -70 14 -9 42 -89 -35 -97 127 -84
 
 predict: 6, frog, test_y: 6, frog
 detail:
--127 -61 -6 -6 -52 44 82 -76 -107 -110
+-114 -93 8 19 1 -6 82 -76 -46 -127
 
-predict: 6, frog, test_y: 2, bird
+predict: 4, deer, test_y: 2, bird
 detail:
--30 -21 -3 -18 -127 -55 0 -102 -123 -1
+-69 -127 -1 26 28 -31 23 -41 -90 -90
 
 predict: 5, dog, test_y: 5, dog
 detail:
--36 -93 -36 24 -54 69 -33 0 -127 -22
-
+-85 -127 3 31 19 40 15 -12 -92 -101
 ```
 
 ## TPU 32位 float cifar10 CNN 图像识别

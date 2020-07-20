@@ -236,8 +236,8 @@ static int calculate(int8_t *x, int y)
     int8_t flatten_tmp[1024];
     int8_t c_flatten[1024];
     int8_t output[10];
-    int32_t alpha = 127 * 127;
-    int32_t beta = 127;
+    int32_t alpha = 127; // x0做了normalize，放大了127倍
+    float beta = 1.0f;
     int32_t max = 0;
 
     vm_read_host_memory(0, x, 32 * 32 * 3);
@@ -246,11 +246,11 @@ static int calculate(int8_t *x, int y)
     vm_read_weights((int8_t *)i_conv0_k, 32 * 3 * 3 * 3);
     vm_convolve(0, 0, 32, 32, 3, 32, 3, 3, 1, 0);
     vm_read_weights((int8_t *)i_conv0_b, 32);
-    vm_conv_bias(0, 30, 30, 32, alpha / 127);
+    vm_conv_bias(0, 30, 30, 32, alpha); // bias0要根据x0的放大倍数，跟着放大，这样才能保证量化一致
     //vm_debug_acc(0, 32, 30, 30); 
     vm_normalize(0, 30 * 30 * 32, 127, &max);
-    beta = max / 127;
-    alpha = alpha / beta;
+    beta = max / 127; // x1经过normalize，缩小beta倍
+    alpha = alpha * 127 / beta; // x1实际上放大的倍数: x0 -> norm(x0k) -> x1
     vm_activate(ACT_TYPE_RELU, 0, 0, 30 * 30 * 32);
     // vm_write_host_memory(debug_data, 0, 30 * 30 * 32);
     // debug(debug_data, 32, 30, 30);
@@ -268,10 +268,10 @@ static int calculate(int8_t *x, int y)
     vm_read_weights((int8_t *)i_conv1_k, 64 * 32 * 3 * 3);
     vm_convolve(0, 0, 15, 15, 32, 64, 3, 3, 1, 0);
     vm_read_weights((int8_t *)i_conv1_b, 64);
-    vm_conv_bias(0, 13, 13, 64, alpha / 127);
+    vm_conv_bias(0, 13, 13, 64, alpha);
     vm_normalize(0, 13 * 13 * 64, 127, &max);
     beta = max / 127;
-    alpha = alpha / beta;
+    alpha = alpha * 127 / beta;
     vm_activate(ACT_TYPE_RELU, 0, 0, 13 * 13 * 64);
     // vm_write_host_memory(debug_data, 0, 13 * 13 * 64);
     // debug(debug_data, 64, 13, 13);
@@ -288,10 +288,10 @@ static int calculate(int8_t *x, int y)
     vm_read_weights((int8_t *)i_conv2_k, 64 * 64 * 3 * 3);
     vm_convolve(0, 0, 6, 6, 64, 64, 3, 3, 1, 0);
     vm_read_weights((int8_t *)i_conv2_b, 64);
-    vm_conv_bias(0, 4, 4, 64, alpha / 127);
+    vm_conv_bias(0, 4, 4, 64, alpha);
     vm_normalize(0, 4 * 4 * 64, 127, &max);
     beta = max / 127;
-    alpha = alpha / beta;
+    alpha = alpha * 127 / beta;
     vm_activate(ACT_TYPE_RELU, 0, 0, 4 * 4 * 64); 
     // vm_write_host_memory(debug_data, 0, 4 * 4 * 64);
     // debug(debug_data, 64, 4, 4);
@@ -309,10 +309,10 @@ static int calculate(int8_t *x, int y)
     vm_read_weights((int8_t *)i_d0_k, 1024 * 64);
     vm_maxtrix_multiply(0, 0, 1, 1024, 1024, 64);
     vm_read_weights(i_d0_b, 64);
-    vm_matmul_bias(0, 64, alpha / 127);
+    vm_matmul_bias(0, 64, alpha);
     vm_normalize(0, 64, 127, &max);
     beta = max / 127;
-    alpha = alpha / beta;
+    alpha = alpha * 127 / beta;
     vm_activate(ACT_TYPE_RELU, 0, 0, 64);
     // vm_write_host_memory(debug_data, 0, 64);
     // debug(debug_data, 1, 1, 64);
@@ -322,10 +322,10 @@ static int calculate(int8_t *x, int y)
     vm_read_weights((int8_t *)i_d1_k, 64 * 10);
     vm_maxtrix_multiply(0, 0, 1, 64, 64, 10);
     vm_read_weights(i_d1_b, 10);
-    vm_matmul_bias(0, 10, alpha / 127);
+    vm_matmul_bias(0, 10, alpha);
     vm_normalize(0, 10, 127, &max);
     beta = max / 127;
-    alpha = alpha / beta;
+    alpha = alpha * 127 / beta;
     vm_activate(ACT_TYPE_NONE, 0, 0, 10);
     vm_write_host_memory(output, 0, 10);
 
